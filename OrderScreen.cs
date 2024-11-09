@@ -12,6 +12,7 @@ namespace PZ_Project
         {
             Console.WriteLine("Złóż zamówienie: ");
             OrderingScreen.DisplayOrderingScreen();
+            //GitHub connection test
         }
 
         public static void BrowseOrders()
