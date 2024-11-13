@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -119,46 +120,157 @@ namespace PZ_Project
             order.Add(item);
         }
 
+        //private static void DisplayOrderSummary()
+        //{
+        //    bool isEmpty = !order.Any();
+        //    if(isEmpty)
+        //    {
+        //        Console.Clear();
+        //        Console.WriteLine("=== UWAGA ===");
+        //        Console.WriteLine("\nTwoje zamówienie jest puste, czy chcesz wrócić do ekranu głównego? (Tak/Nie)");
+
+        //        bool emptyValidChoice = false;
+
+        //        while (!emptyValidChoice)
+        //        {
+        //            ConsoleKey key = Console.ReadKey(true).Key;
+
+        //            if (key == ConsoleKey.T)
+        //            {
+        //                emptyValidChoice = true;
+        //                ConsoleUI.MenuUI();
+        //            }
+        //            else if (key == ConsoleKey.N)
+        //            {
+        //                emptyValidChoice = true;
+        //                Console.WriteLine("\nKontynuowanie składania zamówienia...");
+        //                Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
+        //                Console.ReadKey();
+        //                DisplayOrderingScreen();
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine("\nNieprawidłowy wybór. Wybierz 'T' dla Tak lub 'N' dla Nie.");
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.Clear();
+        //        Console.WriteLine("=== Podsumowanie Zamówienia ===");
+        //        decimal total = 0;
+
+        //        foreach (var item in order)
+        //        {
+        //            Console.WriteLine(item);
+        //            total += item.Price;
+        //        }
+
+        //        Console.WriteLine($"\nŁączna kwota: {total:C}");
+        //        Console.WriteLine("\nCzy chcesz przejść do ekranu płatności? (Tak/Nie)");
+
+        //        bool validChoice = false;
+
+        //        while (!validChoice)
+        //        {
+        //            ConsoleKey key = Console.ReadKey(true).Key;
+
+        //            if (key == ConsoleKey.T)
+        //            {
+        //                validChoice = true;
+        //                DisplayPaymentScreen();
+        //            }
+        //            else if (key == ConsoleKey.N)
+        //            {
+        //                validChoice = true;
+        //                Console.WriteLine("\nKontynuowanie składania zamówienia...");
+        //                Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
+        //                Console.ReadKey();
+        //                DisplayOrderingScreen();
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine("\nNieprawidłowy wybór. Wybierz 'T' dla Tak lub 'N' dla Nie.");
+        //            }
+        //        }
+        //    }
+        //}
+
         private static void DisplayOrderSummary()
         {
-            Console.Clear();
-            Console.WriteLine("=== Podsumowanie Zamówienia ===");
-            decimal total = 0;
+            int selectedItemIndex = 0;
+            bool navigating = true;
 
-            foreach (var item in order)
+            while (navigating)
             {
-                Console.WriteLine(item);
-                total += item.Price;
-            }
+                Console.Clear();
+                Console.WriteLine("=== Podsumowanie Zamówienia ===");
 
-            Console.WriteLine($"\nŁączna kwota: {total:C}");
-            Console.WriteLine("\nCzy chcesz przejść do ekranu płatności? (Tak/Nie)");
+                decimal total = 0;
 
-            bool validChoice = false;
+                // Wyświetlenie listy zamówionych produktów z wyróżnieniem wybranego elementu
+                for (int i = 0; i < order.Count; i++)
+                {
+                    var item = order[i];
+                    total += item.Price;
 
-            while (!validChoice)
-            {
+                    if (i == selectedItemIndex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"> {item}");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  {item}");
+                    }
+                }
+
+                Console.WriteLine($"\nŁączna kwota: {total:C}");
+                Console.WriteLine("\nUsuń wybraną pozycję klawiszem Delete, poruszaj się strzałkami.");
+                Console.WriteLine("Czy chcesz przejść do ekranu płatności? (Tak/Nie)");
+
                 ConsoleKey key = Console.ReadKey(true).Key;
 
-                if (key == ConsoleKey.T)
+                switch (key)
                 {
-                    validChoice = true;
-                    DisplayPaymentScreen();
+                    case ConsoleKey.UpArrow:
+                        selectedItemIndex = (selectedItemIndex > 0) ? selectedItemIndex - 1 : order.Count - 1;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        selectedItemIndex = (selectedItemIndex < order.Count - 1) ? selectedItemIndex + 1 : 0;
+                        break;
+                    case ConsoleKey.Delete:
+                        if (order.Count > 0)
+                        {
+                            Console.WriteLine($"\nUsunięto {order[selectedItemIndex].Name} z zamówienia.");
+                            order.RemoveAt(selectedItemIndex);
+                            selectedItemIndex = (selectedItemIndex >= order.Count) ? order.Count - 1 : selectedItemIndex;
+                            Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
+                            Console.ReadKey();
+                        }
+                        break;
+                    case ConsoleKey.T:
+                        navigating = false;
+                        DisplayPaymentScreen();
+                        break;
+                    case ConsoleKey.N:
+                        navigating = false;
+                        Console.WriteLine("\nPowrót do ekranu składania zamówienia...");
+                        Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
+                        Console.ReadKey();
+                        break;
                 }
-                else if (key == ConsoleKey.N)
+
+                if (order.Count == 0)
                 {
-                    validChoice = true;
-                    Console.WriteLine("\nKontynuowanie składania zamówienia...");
-                    Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
+                    Console.WriteLine("\nTwoje zamówienie jest puste. Naciśnij dowolny klawisz, aby wrócić do ekranu składania zamówienia...");
                     Console.ReadKey();
-                    DisplayOrderingScreen();
-                }
-                else
-                {
-                    Console.WriteLine("\nNieprawidłowy wybór. Wybierz 'T' dla Tak lub 'N' dla Nie.");
+                    navigating = false;
                 }
             }
         }
+
 
         private static void DisplayPaymentScreen()
         {
